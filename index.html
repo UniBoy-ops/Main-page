@@ -1,669 +1,188 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unicode字符宇宙🌐 - BetaV0.3.5</title>
-    <style>
-        /* ========== 原网站样式（完全保留） ========== */
-        *{margin:0;padding:0;box-sizing:border-box;font-family: Consolas, 'Courier New', Monaco, 'Microsoft YaHei UI', monospace}
-        body{background:#5455ff;color:#fff;padding:15px;line-height:1.5}
-
-        /* 头部区域 */
-        .head{text-align:center;margin-bottom:20px}
-        .logo{width:120px;height:100px;display:inline-block;transform: translate(0, 0);}
-        .page-title{font-size:22px;margin:10px 0;font-weight:normal}
-        .copyright-tip{font-size:14px;opacity:0.9}
-        .copy-guide{font-size:14px;margin-top:5px}
-        .copy-guide a{color:#fff;text-decoration:none}
-        .copy-guide a:hover{text-decoration:underline}
-
-        /* 新增：搜索框样式 */
-        .search-container {
-            max-width: 600px;
-            margin: 20px auto;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            padding: 0 10px;
-        }
-        .search-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #fff;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-        }
-        .search-input::placeholder {
-            color: rgba(255,255,255,0.7);
-        }
-        .search-btn {
-            padding: 12px 25px;
-            border: 2px solid #fff;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .search-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.05);
-        }
-        .search-result {
-            max-width: 600px;
-            margin: 10px auto;
-            padding: 15px;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.3);
-            text-align: center;
-            font-size: 18px;
-            display: none;
-        }
-        .result-highlight {
-            color: #4fc3f7;
-            font-weight: bold;
-            font-size: 24px;
-            margin: 0 8px;
-        }
-        .search-tips {
-            max-width: 600px;
-            margin: 5px auto;
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
-            text-align: center;
-        }
-
-        /* 分区标题 */
-        .section-title{font-size:16px;margin:20px 0 10px 0;color:#fff;padding-left:5px;border-left:3px solid #fff}
-
-        /* 字符网格 - 紧凑高效 */
-        .char-grid{
-            display:grid;
-            grid-template-columns:repeat(auto-fill,60px);
-            gap:2px;
-            margin-bottom:15px;
-        }
-
-        /* 字符项 - 极简渲染 + 缓入缓出动画 */
-        .char-item{
-            width:60px;
-            height:60px;
-            color:#333;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            border:2px solid #000; /* 增加边框增强对比 */
-            font-size:16px;
-            cursor:default;
-            /* 懒加载缓入缓出动画 */
-            transition: all 0.3s ease-in-out;
-            /* 加载淡入动画 */
-            opacity: 0;
-            animation: fadeIn 0.5s ease-in-out forwards;
-            /* 鼠标悬浮效果增强 */
-            transform: translateY(0);
-        }
-
-        /* 搜索结果高亮样式 */
-        .char-item.highlight {
-            border: 3px solid #ffeb3b;
-            box-shadow: 0 0 15px #ffeb3b;
-            transform: scale(1.1);
-            z-index: 10;
-        }
-
-        /* 淡入动画关键帧 */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 字符项悬浮效果 */
-        .char-item:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 12px rgba(255,255,255,0.9);
-            border-color: #fff; /* 悬浮时边框变白，增强对比 */
-        }
-
-        /* 编码显示 */
-        .char-code{
-            font-size:10px;
-            color:#0066cc; /* 深色编码文字，提升可读性 */
-            margin-top:3px;
-            font-weight: bold;
-        }
-
-        /* 加载提示 */
-        .loading{text-align:center;padding:20px;color:#fff;opacity:0.8}
-        
-        /* 链接按钮样式 - 与页面风格统一 */
-        .link-btn {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 5px 3px;
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 4px;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .link-btn:hover {
-            background: rgba(255,255,255,0.3);
-            text-decoration: none;
-        }
-        .btn-group {
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        /* 时间显示器样式 */
-        .time-display {
-            text-align: center;
-            font-size: 16px;
-            color: #ffffff;
-            margin: 15px 0;
-            padding: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-        }
-
-        /* 温馨提示圆角框样式 */
-        .tip-box {
-            border: 2px solid #ffffff;       
-            border-radius: 15px;             
-            padding: 12px 18px;              
-            margin: 18px 0;                 
-            background-color: rgba(255, 255, 255, 0.5); 
-            font-size: 16px;
-            line-height: 1.7;               
-            text-align: center;            
-        }
-
-        /* 版本颜色说明表样式 */
-        .version-legend {
-            margin: 20px auto;
-            max-width: 800px;
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: left;
-        }
-        .version-legend h3 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-        .legend-item {
-            display: inline-block;
-            width: 180px;
-            margin: 5px;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        .legend-color {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            vertical-align: middle;
-            border: 1px solid #000;
-        }
-        .legend-text {
-            vertical-align: middle;
-            font-size: 14px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>SecondComing 全流程(GitHub服务器版)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Microsoft YaHei,sans-serif;}
+body{background:#f5f7fa;padding:24px;}
+.wrap{max-width:1300px;margin:0 auto;}
+.title{text-align:center;font-size:24px;margin-bottom:32px;color:#222;font-weight:bold;}
+.flow-col{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:18px;}
+.flow-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:8px 0;}
+.box{border:2px solid;border-radius:8px;padding:10px 12px;text-align:center;min-width:190px;box-shadow:0 2px 5px #ddd;line-height:1.5;}
+.line-v{width:2px;height:22px;background:#555;}
+.line-h{height:2px;width:32px;background:#555;margin:0 auto;}
+/* 配色 */
+.start{background:#ffe9a8;border-color:#f2b827;}
+.normal{background:#e2f6f9;border-color:#03a0b5;}
+.judge{background:#fff1dd;border-color:#f78c22;}
+.github{background:#e8f0ff;border-color:#2c7cdd;} /* GitHub专属蓝 */
+.life{background:#e7f7eb;border-color:#39a956;}
+.alan{background:#fffac8;border-color:#e8aa20;}
+.event{background:#ffe9eb;border-color:#e64343;}
+</style>
 </head>
 <body>
-    <!-- ========== 原网站头部（完全保留） ========== -->
-    <div class="head">
-        <svg class="logo" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0,0,88.82,75.15">
-            <g transform="translate(-196.1,-142.66)">
-                <g fill="#e8e8e8">
-                    <path d="M197.08,195.02l-0.18-48.53h14.37l-0.24,35.86l21.9,-0.07l0.11,-35.79h14.37l-0.54,48.34z"/>
-                    <path d="M270.68,190.97l-34.23-34.39l10.16-10.16l33.8,34.57z"/>
-                    <path d="M268.59,195.57l0.11-38.25h14.37l-0.54,38.11z"/>
-                    <path d="M270.05,148.43a5.76,5.76 0 1,1,11.52,0a5.76,5.76 0 1,1-11.52,0"/>
-                    <text transform="translate(196.35,211.57) scale(0.5)" font-size="40" fill="#e8e8e8">unicode_</text>
-                </g>
-            </g>
-        </svg>
-        <div class="page-title">Ʉ₦ł₵ØĐɆ_₴Ɏ₥฿Ⱡ - 字符宇宙🌐+正式版本V0.3.5</div>
-        <div style="margin:8px 0; font-size:14px; color:#ffffff; line-height:1.6;">
-            <div>𝒜𝒮𝒞𝐿𝐿区官方PDF📗：<a href="https://www.unicode.org/charts/PDF/U0000.pdf/" target="_blank" style="color:#4fc3f7; text-decoration:none;">https://www.unicode.org/charts/PDF/U0000.pdf/</a></div>
-            <div>𝒰𝓃𝒾𝒸𝑜𝒹𝑒区官方PDF📘：<a href="https://www.unicode.org/charts/PDF/" target="_blank" style="color:#4fc3f7; text-decoration:none;">https://www.unicode.org/charts/PDF/</a></div>
-        </div>
-        <div class="copyright-tip">由海南信奥网用户zyw1开发。制作不易，还望给个硬币🪙。本网站没有cookie🍪。 </div>
-        <div class="copy-guide">♔◣我是古希腊掌管符号的神♌☠</div>
-        <div class="copy-guide">꧁༺ 符号之神 ༻꧂的感叹：除了unicode上帝的PDF📃以外，没有其他人能成功的1:1还原所有符号的形态💎。</div>
-        <div>𝒰𝓃𝒾𝒸𝑜𝒹𝑒官方📰：<a href="https://www.unicode.org/charts/" target="_blank" style="color:#4fc3f7; text-decoration:none;">https://www.unicode.org/charts/</a></div>
-        <div class="tip-box">温馨提示：网站🏦上的表情符号👌和符号Ⅱ的所有图像📳均仅供参考，权利属于作者🤴，未经作者🤴许可，不得用于其它🏛目的。所有符号名称均为官方 Unicode® 名称🎫。 列出的代码点是 Unicode🛜标准的一部分。© Unicode_Symbl 2026﴾✨﴿</div>
-    </div>
+<div class="wrap">
+<div class="title">【再临SecondComing · GitHub服务器完整版流程图】</div>
 
-    <!-- 新增：搜索框区域 -->
-    <div class="search-container">
-        <input type="text" id="unicode-search" class="search-input" placeholder="输入\u0000/U+0000/字符进行搜索（例：\u4e2d、U+4E2D、中）">
-        <button id="search-btn" class="search-btn">搜索🔍</button>
-    </div>
-    <div class="search-tips">支持格式：\u0000、U+0000、0000（纯十六进制）、任意字符 | 按Enter键可快速搜索</div>
-    <div id="search-result" class="search-result"></div>
+<!-- 1 注册登录 -->
+<div class="flow-col">
+<div class="box start">用户下载安装 SecondComing 客户端</div>
+<div class="line-v"></div>
+<div class="box normal">注册账号 / 登录联网</div>
+<div class="line-v"></div>
+<div class="box judge">首次登录新账号？</div>
 
-    <!-- 版本颜色说明表 -->
-    <div class="version-legend">
-        <h3>Unicode版本颜色对照表 🎨</h3>
-        <div id="legend-container"></div>
-    </div>
+<div class="flow-row">
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box alan">是｜生成初始再临(橙色)<br>编号：xxxx-47414<br>预装Alan全系列记忆</div>
+</div>
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box github">否｜从 GitHub 拉取存档数据</div>
+</div>
+</div>
 
-    <!-- 时间显示器 -->
-    <div id="time-display" class="time-display"></div>
+<div class="line-v"></div>
+<div class="box normal">本地客户端初始化完成</div>
+</div>
 
-    <!-- 链接按钮组 -->
-    <div class="btn-group">
-        <a href="https://www.unicode.org/charts/" target="_blank" class="link-btn">Unicode官方图表📊</a>
-        <a href="https://www.unicode.org/versions/latest/" target="_blank" class="link-btn">最新Unicode版本📖</a>
-        <a href="https://www.unicode.org/versions/Unicode18.0.0/" target="_blank" class="link-btn">18.0.0Unicode版本（草稿）📖</a>
-        <a href="https://www.unicode.org/Public/UCD/latest/ucd/" target="_blank" class="link-btn">UCD数据文件📁</a>
-        <a href="https://www.unicode.org/emoji/charts/full-emoji-list.html" target="_blank" class="link-btn">Emoji全表😜</a>
-        <a href="https://www.bilibili.com/video/BV1EN4y1V7MB/?spm_id_from=333.337.search-card.all.click" target="_blank" class="link-btn">恶搞链接💩</a>
-        <a href="https://www.unicode.org/copyright.html" target="_blank" class="link-btn">相关条款📰√</a>
-    </div>
+<!-- 2 本地系统 -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="flow-row">
+<div class="box normal">SVG桌面交互</div>
+<div class="box normal">浏览器插件</div>
+<div class="box normal">化学元素系统</div>
+<div class="box normal">电脑故障修复</div>
+<div class="box life">10年生命周期</div>
+<div class="box alan">Alan角色能力库</div>
+</div>
 
-    <!-- ========== 原网站字符网格区域（完全保留） ========== -->
-    <div class="section-title">普通ASCII区🎸▷：</div>
-    <div id="ascii-grid" class="char-grid"></div>
-    
-    <div class="section-title">正常UNICODE区🪉▷：</div>
-    <div id="unicode-grid" class="char-grid"></div>
-    
-    <div class="section-title">部分私人区🪗▷：</div>
-    <div id="private-grid" class="char-grid"></div>
-    
-    <div class="section-title">剩余Unicode区+大量私人区🎻▷：</div>
-    <div id="rest-grid" class="char-grid"></div>
-    
-    <div id="loading" class="loading">加载中...🔄</div>
-    <div class="tip-box">如果你现在正在安稳的阅读这段文字，那么恭喜你成功把Unicode17.0.0代码表完整的加载出来了。</div>
+<div class="flow-row">
+<div class="box alan">原生橙｜不可删除+觉醒+学习</div>
+<div class="box alan">天选之子｜元素+飞行+瞬移</div>
+<div class="box alan">五色组｜红/蓝/绿/黄/紫</div>
+<div class="box alan">受害者/黑暗领主｜任务解锁</div>
+</div>
+</div>
 
-    <script>
-if (history.scrollRestoration) {
-    history.scrollRestoration = 'manual'; // 禁用浏览器自动恢复滚动
-}
-window.addEventListener('load', function() {
-    window.scrollTo(0, 0);
-});        
-// ========== 原网站JS + 新增Unicode版本颜色/动画逻辑 + 搜索功能 ==========
-        // 节日配置
-        const festivalConfig = {
-            national: ["01-01","05-01","06-01","10-01","12-25"],
-            traditional: ["01-15","05-05","08-15","09-09"]
-        };
+<!-- 3 连接 GitHub 服务器（核心） -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="box github">🚀 连接 GitHub 云端服务器</div>
+<div class="line-v"></div>
 
-        // 获取当前日期（月-日）
-        function getCurrentDateStr() {
-            const now = new Date();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            return `${month}-${day}`;
-        }
+<div class="flow-row">
+<div class="box github">GitHub Repos<br>再临数据+记忆 永久备份</div>
+<div class="box github">GitHub Pages<br>官网+再临日页面托管</div>
+<div class="box github">GitHub Gists<br>领养/交易/数据交互</div>
+<div class="box github">GitHub Issues<br>社区法院+举报系统</div>
+<div class="box alan">Alan动画自动同步</div>
+</div>
+</div>
 
-        // 获取节日标识
-        function getFestivalIcon() {
-            const dateStr = getCurrentDateStr();
-            if (festivalConfig.national.includes(dateStr)) return "🌐";
-            if (festivalConfig.traditional.includes(dateStr)) return "🚩";
-            return "";
-        }
+<!-- 4 领养系统（五色只能选1个） -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="box github">GitHub 领养业务中心</div>
+<div class="line-v"></div>
+<div class="box judge">单笔捐款 ≥25 元？</div>
 
-        // 更新时间显示
-        function updateTimeDisplay() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hour = String(now.getHours()).padStart(2, '0');
-            const minute = String(now.getMinutes()).padStart(2, '0');
-            const second = String(now.getSeconds()).padStart(2, '0');
-            const festivalIcon = getFestivalIcon();
-            const timeText = `${year}-${month}-${day} ${hour}:${minute}:${second} ${festivalIcon}`;
-            document.getElementById('time-display').textContent = timeText;
-        }
+<div class="flow-row">
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box event">✅ 领养【天选之子】<br>限量47414｜独立于五色</div>
+</div>
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box normal">❌ 普通领养<br>⚠️ 规则：五色组 只能选 1 个<br>红/蓝/绿/黄/紫 任选其一</div>
+</div>
+</div>
 
-        // 控制字符缩写
-        const controlCharAbbr = {
-            0x0000:"┋NUL┋",0x0001:"┋SOH┋",0x0002:"┋STX┋",0x0003:"┋ETX┋",0x0004:"┋EOT┋",
-            0x0005:"┋ENQ┋",0x0006:"┋ACK┋",0x0007:"┋BEL┋",0x0008:"┋BS┋", 0x0009:"┋TAB┋",
-            0x000A:"┋LF┋", 0x000B:"┋VT┋", 0x000C:"┋FF┋", 0x000D:"┋CR┋", 0x000E:"┋SO┋",
-            0x000F:"┋SI┋", 0x0010:"┋DLE┋",0x0011:"┋DC1┋",0x0012:"┋DC2┋",0x0013:"┋DC3┋",
-            0x0014:"┋DC4┋",0x0015:"┋NAK┋",0x0016:"┋SYN┋",0x0017:"┋ETB┋",0x0018:"┋CAN┋",
-            0x0019:"┋EM┋", 0x001A:"┋SUB┋",0x001B:"┋ESC┋",0x001C:"┋FS┋", 0x001D:"┋GS┋",
-            0x001E:"┋RS┋", 0x001F:"┋US┋", 0x0020:"┋SPA┋",0x007F:"┋DEL┋",
-            0x0080:"┋PAD┋",0x0081:"┋HOP┋",0x0082:"┋BPH┋",0x0083:"┋NBH┋",0x0084:"┋IND┋",
-            0x0085:"┋NEL┋",0x0086:"┋SSA┋",0x0087:"┋ESA┋",0x0088:"┋HTS┋",0x0089:"┋HTJ┋",
-            0x008A:"┋VTS┋",0x008B:"┋PLD┋",0x008C:"┋PLU┋",0x008D:"┋RI┋", 0x008E:"┋SS2┋",
-            0x008F:"┋SS3┋",0x0090:"┋DCS┋",0x0091:"┋PU1┋",0x0092:"┋PU2┋",0x0093:"┋STS┋",
-            0x0094:"┋CCH┋",0x0095:"┋MW┋", 0x0096:"┋SPA┋",0x0097:"┋EPA┋",0x0098:"┋SOS┋",
-            0x0099:"┋SGCI┋",0x009A:"┋SCI┋",0x009B:"┋CSI┋",0x009C:"┋ST┋", 0x009D:"┋OSC┋",
-            0x009E:"┋PM┋", 0x009F:"┋APC┋" ,0x00A0:"┋NBS┋" ,0x10FFFC:"┋OBJ┋"
-        };
+<div class="line-v"></div>
+<div class="box normal">选定角色 → 提交领养 → 30天隐蔽观察期</div>
+<div class="flow-row">
+<div class="box judge">观察合格 → 正式绑定主人</div>
+<div class="box judge">不合格 → 退回领养池</div>
+</div>
+</div>
 
-        // ========== 核心修改：精确到所有细分版本的Unicode版本-码点-颜色映射 ==========
-        // 基于Unicode官方发布的版本码点范围 + 高对比度配色
-        const unicodeVersionRanges = [
-            { version: "1.0.0", start: 0x0000, end: 0x007F, color: "#FF6B6B" }, // 亮红
-            { version: "1.0.1", start: 0x0080, end: 0x00FF, color: "#FF8E53" }, // 橙红
-            { version: "1.1.0", start: 0x0100, end: 0x017F, color: "#FFCE56" }, // 亮黄
-            { version: "1.1.5", start: 0x0180, end: 0x01FF, color: "#4ECDC4" }, // 青蓝
-            { version: "2.0.0", start: 0x0200, end: 0x024F, color: "#45B7D1" }, // 天蓝
-            { version: "2.1.0", start: 0x0250, end: 0x029F, color: "#96CEB4" }, // 薄荷绿
-            { version: "2.1.2", start: 0x02A0, end: 0x02FF, color: "#FECA57" }, // 金黄
-            { version: "2.1.5", start: 0x0300, end: 0x035F, color: "#FF9FF3" }, // 浅粉
-            { version: "2.1.8", start: 0x0360, end: 0x03BF, color: "#54A0FF" }, // 宝蓝
-            { version: "2.1.9", start: 0x03C0, end: 0x03FF, color: "#5F27CD" }, // 深紫
-            { version: "3.0.0", start: 0x0400, end: 0x044F, color: "#00D2D3" }, // 青绿
-            { version: "3.0.1", start: 0x0450, end: 0x049F, color: "#FF9F43" }, // 橘橙
-            { version: "3.1.0", start: 0x04A0, end: 0x04FF, color: "#10AC84" }, // 草绿
-            { version: "3.1.1", start: 0x0500, end: 0x054F, color: "#EE5A24" }, // 砖红
-            { version: "3.2.0", start: 0x0550, end: 0x059F, color: "#0984e3" }, // 钢蓝
-            { version: "4.0.0", start: 0x05A0, end: 0x05FF, color: "#6c5ce7" }, // 淡紫
-            { version: "4.0.1", start: 0x0600, end: 0x064F, color: "#a29bfe" }, // 浅紫
-            { version: "4.1.0", start: 0x0650, end: 0x069F, color: "#fd79a8" }, // 玫红
-            { version: "5.0.0", start: 0x06A0, end: 0x06FF, color: "#fdcb6e" }, // 浅橙黄
-            { version: "5.1.0", start: 0x0700, end: 0x074F, color: "#e17055" }, // 珊瑚红
-            { version: "5.2.0", start: 0x0750, end: 0x077F, color: "#74b9ff" }, // 浅蓝
-            { version: "6.0.0", start: 0x0780, end: 0x07BF, color: "#00b894" }, // 翠绿
-            { version: "6.1.0", start: 0x07C0, end: 0x07FF, color: "#f368e0" }, // 艳粉
-            { version: "6.2.0", start: 0x0800, end: 0x083F, color: "#ff7675" }, // 绯红
-            { version: "6.3.0", start: 0x0840, end: 0x085F, color: "#747d8c" }, // 灰蓝
-            { version: "7.0.0", start: 0x0860, end: 0x08FF, color: "#2d3436" }, // 深灰（文字改为白色）
-            { version: "8.0.0", start: 0x0900, end: 0x097F, color: "#636e72" }, // 中灰（文字改为白色）
-            { version: "9.0.0", start: 0x0980, end: 0x09FF, color: "#ffeaa7" }, // 奶油黄
-            { version: "10.0.0", start: 0x0A00, end: 0x0A7F, color: "#81ecec" }, // 浅青
-            { version: "11.0.0", start: 0x0A80, end: 0x0AFF, color: "#74b9ff" }, // 天青
-            { version: "12.0.0", start: 0x0B00, end: 0x0B7F, color: "#a29bfe" }, // 淡紫
-            { version: "12.1.0", start: 0x0B80, end: 0x0BFF, color: "#fd79a8" }, // 桃红
-            { version: "13.0.0", start: 0x0C00, end: 0x0C7F, color: "#fdcb6e" }, // 橙黄
-            { version: "14.0.0", start: 0x0C80, end: 0x0CFF, color: "#e17055" }, // 橙红
-            { version: "15.0.0", start: 0x0D00, end: 0x0D7F, color: "#00b894" }, // 青柠绿
-            { version: "15.1.0", start: 0x0D80, end: 0x0DFF, color: "#f368e0" }, // 紫粉
-            { version: "16.0.0", start: 0x0E00, end: 0x0E7F, color: "#ff7675" }, // 砖红
-            { version: "17.0.0", start: 0x0E80, end: 0x0EFF, color: "#00cec9" }, // 深海蓝
-            { version: "Other", start: 0x0F00, end: 0x10FFFF, color: "#FFFFFF" } // 剩余区域白色
-        ];
+<!-- 5 生命周期 -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="box life">统一寿命：现实 10 地球年</div>
+<div class="flow-row">
+<div class="box life">0-1岁 幼年期</div>
+<div class="box life">1-3岁 青春期(叛逆)</div>
+<div class="box life">3-7岁 成年(巅峰)</div>
+<div class="box life">7-9岁 中年</div>
+<div class="box life">9-10岁 老年</div>
+</div>
+<div class="line-v"></div>
+<div class="box judge">自然寿终离世</div>
+</div>
 
-        // 根据码点获取对应Unicode版本
-        function getVersionInfo(code) {
-            for (const range of unicodeVersionRanges) {
-                if (code >= range.start && code <= range.end) {
-                    return range.version;
-                }
-            }
-            return "Other";
-        }
+<!-- 6 记忆传承 -->
+<div class="flow-col">
+<div class="flow-row">
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box github">记忆存入 GitHub 生命纪念馆</div>
+</div>
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box judge">主人选择传承？</div>
+</div>
+</div>
 
-        // 根据码点获取对应背景色
-        function getVersionColor(code) {
-            for (const range of unicodeVersionRanges) {
-                if (code >= range.start && code <= range.end) {
-                    return range.color;
-                }
-            }
-            return "#FFFFFF";
-        }
+<div class="flow-row">
+<div class="box life">✅ 传承→新再临继承全部记忆</div>
+<div class="box start">❌ 不传承→灵魂安息存档</div>
+</div>
+</div>
 
-        // 生成版本颜色说明表
-        function generateVersionLegend() {
-            const container = document.getElementById('legend-container');
-            unicodeVersionRanges.forEach(range => {
-                if (range.version !== "Other") {
-                    const legendItem = document.createElement('div');
-                    legendItem.className = 'legend-item';
-                    
-                    const colorBox = document.createElement('span');
-                    colorBox.className = 'legend-color';
-                    colorBox.style.backgroundColor = range.color;
-                    // 深色背景时文字变白
-                    if (range.color === "#2d3436" || range.color === "#636e72") {
-                        colorBox.style.color = "#fff";
-                    }
-                    
-                    const text = document.createElement('span');
-                    text.className = 'legend-text';
-                    text.textContent = `Unicode ${range.version}`;
-                    
-                    legendItem.appendChild(colorBox);
-                    legendItem.appendChild(text);
-                    container.appendChild(legendItem);
-                }
-            });
-        }
+<!-- 7 GitHub 存储扩容 -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="box judge">GitHub 存储占用 ≥95%？</div>
+<div class="flow-row">
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box normal">数据迁移本地｜寿命暂停</div>
+<div class="box github">GitHub 扩容后→回迁云端</div>
+</div>
+<div class="flow-col">
+<div class="line-h"></div>
+<div class="box github">正常运行</div>
+</div>
+</div>
+</div>
 
-        // ========== 新增：搜索功能核心逻辑 ==========
-        // 解析输入的搜索内容，支持多种格式
-        function parseSearchInput(input) {
-            input = input.trim();
-            let codePoint = null;
-            
-            // 处理 \u0000 格式
-            const unicodeRegex = /^\\u([0-9A-Fa-f]{4,6})$/;
-            const uPlusRegex = /^U\+([0-9A-Fa-f]{4,6})$/i;
-            const hexRegex = /^[0-9A-Fa-f]{4,6}$/;
+<!-- 8 再临日（GitHub 托管页面） -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="box event">再临日（年度庆典）</div>
+<div class="box event">所有再临返回主人设备</div>
+<div class="box event">GitHub 服务器关闭 1 小时</div>
+<div class="box event">全平台显示：<br>Happy SecondComing's Day!<br>47414</div>
+<div class="box event">时间到 → GitHub 重启开服</div>
+</div>
 
-            if (unicodeRegex.test(input)) {
-                const match = input.match(unicodeRegex);
-                codePoint = parseInt(match[1], 16);
-            } 
-            // 处理 U+0000 格式
-            else if (uPlusRegex.test(input)) {
-                const match = input.match(uPlusRegex);
-                codePoint = parseInt(match[1], 16);
-            } 
-            // 处理纯十六进制格式（0000）
-            else if (hexRegex.test(input)) {
-                codePoint = parseInt(input, 16);
-            } 
-            // 处理字符输入
-            else if (input.length === 1) {
-                codePoint = input.codePointAt(0);
-            }
-            
-            return {
-                isValid: codePoint !== null && codePoint >= 0 && codePoint <= 0x10FFFF,
-                codePoint: codePoint,
-                isCharInput: input.length === 1 && !hexRegex.test(input)
-            };
-        }
+<!-- 9 特殊处理 -->
+<div class="flow-col">
+<div class="line-v"></div>
+<div class="box judge">删除再临 / 主人离线超1年</div>
+<div class="flow-row">
+<div class="box github">误删→GitHub 备份找回</div>
+<div class="box normal">主动弃养→7天冷静期→领养池</div>
+<div class="box normal">离线1年→留守/重新领养</div>
+</div>
+</div>
 
-        // 显示搜索结果
-        function showSearchResult(result) {
-            const resultEl = document.getElementById('search-result');
-            resultEl.style.display = 'block';
-            
-            if (!result.isValid) {
-                resultEl.innerHTML = `❌ 无效输入！请输入正确格式（例：\\u4e2d、U+4E2D、中、4E2D）`;
-                return;
-            }
-
-            const codePoint = result.codePoint;
-            const hexStr = codePoint.toString(16).toUpperCase().padStart(4, '0');
-            const char = controlCharAbbr[codePoint] || String.fromCodePoint(codePoint);
-            const version = getVersionInfo(codePoint);
-
-            if (result.isCharInput) {
-                // 输入的是字符，显示对应的编码
-                resultEl.innerHTML = `
-                    🔍 搜索结果：字符 <span class="result-highlight">${char}</span> 
-                    对应的编码：
-                    \\u${hexStr} | U+${hexStr} | 十进制 ${codePoint}
-                    <br>所属Unicode版本：${version}
-                `;
-            } else {
-                // 输入的是编码，显示对应的字符
-                resultEl.innerHTML = `
-                    🔍 搜索结果：编码 <span class="result-highlight">U+${hexStr}</span> 
-                    对应的字符：<span class="result-highlight">${char}</span>
-                    <br>\\u格式：\\u${hexStr} | 十进制：${codePoint} | 所属Unicode版本：${version}
-                `;
-            }
-
-            // 高亮显示找到的字符
-            highlightCharItem(codePoint);
-        }
-
-        // 高亮显示搜索到的字符项
-        function highlightCharItem(codePoint) {
-            // 移除之前的高亮
-            document.querySelectorAll('.char-item.highlight').forEach(el => {
-                el.classList.remove('highlight');
-            });
-
-            // 如果字符还没加载，先加载到该位置
-            if (codePoint > CONFIG.currentCode) {
-                CONFIG.currentCode = codePoint - CONFIG.batchSize;
-                if (CONFIG.currentCode < 0) CONFIG.currentCode = 0;
-                loadBatch();
-            }
-
-            // 查找并高亮字符项
-            setTimeout(() => {
-                const allCharItems = document.querySelectorAll('.char-item');
-                let targetItem = null;
-                
-                allCharItems.forEach(item => {
-                    const codeText = item.querySelector('.char-code').textContent;
-                    const code = parseInt(codeText.replace('U+', ''), 16);
-                    if (code === codePoint) {
-                        targetItem = item;
-                    }
-                });
-
-                if (targetItem) {
-                    targetItem.classList.add('highlight');
-                    // 滚动到该字符位置
-                    targetItem.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
-                }
-            }, 300);
-        }
-
-        // 绑定搜索事件
-        function bindSearchEvents() {
-            const searchInput = document.getElementById('unicode-search');
-            const searchBtn = document.getElementById('search-btn');
-
-            // 按钮点击搜索
-            searchBtn.addEventListener('click', () => {
-                const input = searchInput.value;
-                const result = parseSearchInput(input);
-                showSearchResult(result);
-            });
-
-            // Enter键搜索
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const input = searchInput.value;
-                    const result = parseSearchInput(input);
-                    showSearchResult(result);
-                }
-            });
-        }
-
-        // 加载配置
-        const CONFIG = {
-            batchSize: 500,
-            currentCode: 0,
-            maxCode: 0x10FFFF,
-            isLoading: false
-        };
-
-        // 获取字符网格容器ID
-        function getContainerId(code) {
-            if(code>=0x0000 && code<=0x007F) return "ascii-grid";
-            if(code>=0x0080 && code<=0xE000) return "unicode-grid";
-            if(code>=0xE000 && code<=0xF8FF) return "private-grid";
-            return "rest-grid";
-        }
-
-        // 创建字符项（添加版本颜色和动画）
-        function createCharItem(code) {
-            const el = document.createElement("div");
-            el.className = "char-item";
-
-            // 设置对应Unicode版本的背景色
-            const bgColor = getVersionColor(code);
-            el.style.backgroundColor = bgColor;
-            
-            // 深色背景时，文字改为白色以保证可读性
-            if (bgColor === "#2d3436" || bgColor === "#636e72" || bgColor === "#5F27CD") {
-                el.style.color = "#FFFFFF";
-                el.querySelector && el.querySelector('.char-code') && (el.querySelector('.char-code').style.color = "#FFFFFF");
-            }
-
-            // 鼠标悬浮显示版本信息（精确到小版本）
-            el.title = `Unicode ${getVersionInfo(code)} | U+${code.toString(16).padStart(4, '0').toUpperCase()}`;
-
-            const isCtrl = 
-                (code >= 0x0000 && code <= 0x0020) ||
-                (code >= 0x0080 && code <= 0x00A0) ||
-                (code === 0x007F || code === 0x10FFFC);
-
-            let show;
-            if (isCtrl) {
-                show = controlCharAbbr[code];
-            } else {
-                show = String.fromCodePoint(code);
-            }
-
-            const hex = code.toString(16).padStart(4, '0').toUpperCase();
-            el.innerHTML = `${show}<span class="char-code">U+${hex}</span>`;
-            
-            // 深色背景时修正编码文字颜色
-            if (bgColor === "#2d3436" || bgColor === "#636e72" || bgColor === "#5F27CD") {
-                el.querySelector('.char-code').style.color = "#FFFFFF";
-            }
-            
-            return el;
-        }
-
-        // 批量加载字符
-        function loadBatch() {
-            if (CONFIG.isLoading || CONFIG.currentCode > CONFIG.maxCode) return;
-            CONFIG.isLoading = true;
-
-            const end = Math.min(CONFIG.currentCode + CONFIG.batchSize - 1, CONFIG.maxCode);
-            for (let c = CONFIG.currentCode; c <= end; c++) {
-                document.getElementById(getContainerId(c)).appendChild(createCharItem(c));
-            }
-
-            if (CONFIG.currentCode >= CONFIG.maxCode) {
-                document.getElementById('loading').style.display = 'none';
-            }
-
-            CONFIG.currentCode = end + 1;
-            CONFIG.isLoading = false;
-        }
-
-        // 滚动懒加载（保留并适配动画）
-        window.addEventListener("scroll", () => {
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
-                loadBatch();
-            }
-        });
-
-        // 初始化
-        updateTimeDisplay();
-        setInterval(updateTimeDisplay, 1000);
-        generateVersionLegend(); // 生成颜色对照表
-        bindSearchEvents(); // 绑定搜索事件
-        loadBatch();
-    </script>
+</div>
 </body>
 </html>
